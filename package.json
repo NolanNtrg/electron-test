@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Simple Electron app",
   "main": "main.js",
+  "author": {
+    "name": "Nolan Notargiacomo",
+    "email": "nolan@bearstudio.fr"
+  },
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"
@@ -17,7 +21,8 @@
       "target": ["AppImage", "deb"]
     },
     "win": {
-      "target": ["portable"]
+      "target": ["portable"],
+      "signAndEditExecutable": false
     }
   },
   "devDependencies": {
