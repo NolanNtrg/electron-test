@@ -23,6 +23,10 @@
     "win": {
       "target": ["portable"],
       "signAndEditExecutable": false
+    },
+    "mac": {
+      "target": ["dmg"],
+      "identity": null
     }
   },
   "devDependencies": {
