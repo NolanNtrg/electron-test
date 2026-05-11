@@ -29,14 +29,13 @@ steps:
       - test -n "$(ls release/*.exe 2>/dev/null)" || (echo ".exe manquant" && exit 1)
 
   - name: release
-    image: plugins/github-release
-    settings:
-      api_key:
+    image: alpine:3.21
+    environment:
+      GITHUB_TOKEN:
         from_secret: github_token
-      files:
-        - release/*.exe
-      tag: "pr-${CI_COMMIT_PULL_REQUEST}-${CI_COMMIT_SHA:0:7}"
-      title: "PR #${CI_COMMIT_PULL_REQUEST} build (${CI_COMMIT_SHA:0:7})"
-      note: "Automated pre-release build from PR #${CI_COMMIT_PULL_REQUEST}"
-      prerelease: true
-      overwrite: true
+    commands:
+      - apk add --no-cache github-cli
+      - SHA=$(echo "$CI_COMMIT_SHA" | cut -c1-7)
+      - TAG="pr-${CI_COMMIT_PULL_REQUEST}-${SHA}"
+      - gh release view "$TAG" --repo NolanNtrg/electron-test 2>/dev/null || gh release create "$TAG" --repo NolanNtrg/electron-test --prerelease --title "PR #${CI_COMMIT_PULL_REQUEST} ($SHA)" --notes "Build from PR #${CI_COMMIT_PULL_REQUEST}"
+      - gh release upload "$TAG" release/*.exe --repo NolanNtrg/electron-test --clobber
