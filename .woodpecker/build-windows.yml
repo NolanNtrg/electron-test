@@ -35,7 +35,17 @@ steps:
         from_secret: github_token
     commands:
       - apk add --no-cache github-cli
-      - SHA=$(echo "$CI_COMMIT_SHA" | cut -c1-7)
-      - TAG="pr-${CI_COMMIT_PULL_REQUEST}-${SHA}"
-      - gh release view "$TAG" --repo NolanNtrg/electron-test 2>/dev/null || gh release create "$TAG" --repo NolanNtrg/electron-test --prerelease --title "PR #${CI_COMMIT_PULL_REQUEST} ($SHA)" --notes "Build from PR #${CI_COMMIT_PULL_REQUEST}"
-      - gh release upload "$TAG" release/*.exe --repo NolanNtrg/electron-test --clobber
+      - |
+        set -e
+        SHA=$(echo "$CI_COMMIT_SHA" | cut -c1-7)
+        PR="$CI_COMMIT_PULL_REQUEST"
+        TAG="pr-${PR}-${SHA}"
+        gh release view "$TAG" --repo NolanNtrg/electron-test 2>/dev/null \
+          || gh release create "$TAG" \
+            --repo NolanNtrg/electron-test \
+            --prerelease \
+            --title "PR ${PR} build (${SHA})" \
+            --notes "Automated build from PR ${PR}"
+        gh release upload "$TAG" release/*.exe \
+          --repo NolanNtrg/electron-test \
+          --clobber
