@@ -32,24 +32,26 @@ steps:
       - ./node_modules/.bin/electron-builder --win --x64 --publish never
 
   - name: release
-    image: alpine:3.21
+    image: node:24
     environment:
       GITHUB_TOKEN:
         from_secret: github_token
     commands:
-      - apk add --no-cache github-cli jq
+      - git config --global --add safe.directory "*"
       - |
         set -e
-        git config --global --add safe.directory "$CI_WORKSPACE"
-        cd "$CI_WORKSPACE"
+        curl -fsSL "https://github.com/cli/cli/releases/download/v2.63.0/gh_2.63.0_linux_amd64.tar.gz" | tar xz -C /tmp
+        install -m755 /tmp/gh_2.63.0_linux_amd64/bin/gh /usr/local/bin/gh
+
         SHA=$(git rev-parse --short=7 HEAD)
-        VERSION=$(jq -r .version package.json)
+        VERSION=$(node -p "require('./package.json').version")
         TAG="v${VERSION}-${SHA}"
+
         gh release create "$TAG" \
           --repo NolanNtrg/electron-test \
           --prerelease \
           --title "v${VERSION} (${SHA})" \
-          --notes "Release built from main — ${SHA}"
+          --notes "Release from main at ${SHA}"
         gh release upload "$TAG" \
           release/*.AppImage \
           release/*.deb \
