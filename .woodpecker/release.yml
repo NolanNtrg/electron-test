@@ -1,0 +1,54 @@
+when:
+  - event: push
+    branch: [main]
+
+steps:
+  - name: install
+    image: node:24
+    environment:
+      TMPDIR: /tmp
+      LEFTHOOK: "0"
+    commands:
+      - git config --global --add safe.directory "$CI_WORKSPACE"
+      - corepack enable
+      - corepack prepare pnpm@10.33.2 --activate
+      - pnpm config set store-dir ~/.pnpm-store
+      - pnpm install
+
+  - name: package-linux
+    image: electronuserland/builder:latest
+    environment:
+      TMPDIR: /tmp
+    commands:
+      - git config --global --add safe.directory "$CI_WORKSPACE"
+      - ./node_modules/.bin/electron-builder --linux --x64 --publish never
+
+  - name: package-windows
+    image: node:24
+    environment:
+      TMPDIR: /tmp
+    commands:
+      - git config --global --add safe.directory "$CI_WORKSPACE"
+      - ./node_modules/.bin/electron-builder --win --x64 --publish never
+
+  - name: release
+    image: alpine:3.21
+    environment:
+      GITHUB_TOKEN:
+        from_secret: github_token
+    commands:
+      - apk add --no-cache github-cli
+      - |
+        set -e
+        SHA=$(git rev-parse --short=7 HEAD)
+        VERSION=$(awk -F'"' '/"version"/{print $4; exit}' package.json)
+        TAG="v${VERSION}-${SHA}"
+        gh release create "$TAG" \
+          --repo NolanNtrg/electron-test \
+          --title "v${VERSION} (${SHA})" \
+          --notes "Release built from main — ${SHA}"
+        gh release upload "$TAG" \
+          release/*.AppImage \
+          release/*.deb \
+          release/*.exe \
+          --repo NolanNtrg/electron-test

@@ -1,0 +1,30 @@
+when:
+  - event: pull_request
+
+steps:
+  - name: install
+    image: node:24
+    environment:
+      TMPDIR: /tmp
+      LEFTHOOK: "0"
+    commands:
+      - git config --global --add safe.directory "$CI_WORKSPACE"
+      - corepack enable
+      - corepack prepare pnpm@10.33.2 --activate
+      - pnpm config set store-dir ~/.pnpm-store
+      - pnpm install
+
+  - name: package
+    image: electronuserland/builder:latest
+    environment:
+      TMPDIR: /tmp
+    commands:
+      - git config --global --add safe.directory "$CI_WORKSPACE"
+      - ./node_modules/.bin/electron-builder --linux --x64 --publish never
+
+  - name: verify
+    image: alpine
+    commands:
+      - ls -lh release/
+      - test -n "$(ls release/*.AppImage 2>/dev/null)" || (echo "AppImage manquant" && exit 1)
+      - test -n "$(ls release/*.deb 2>/dev/null)" || (echo ".deb manquant" && exit 1)
