@@ -17,7 +17,7 @@
       "target": ["AppImage", "deb"]
     },
     "win": {
-      "target": ["nsis"]
+      "target": ["portable"]
     }
   },
   "devDependencies": {

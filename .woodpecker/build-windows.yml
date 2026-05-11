@@ -3,24 +3,24 @@ when:
 
 steps:
   - name: install
-    image: electronuserland/builder:wine
+    image: node:24
     environment:
+      TMPDIR: /tmp
       LEFTHOOK: "0"
     commands:
+      - git config --global --add safe.directory "$CI_WORKSPACE"
       - corepack enable
-      - pnpm install --frozen-lockfile
-
-  - name: build
-    image: electronuserland/builder:wine
-    environment:
-      LEFTHOOK: "0"
-    commands:
-      - pnpm build
+      - corepack prepare pnpm@10.33.2 --activate
+      - pnpm config set store-dir ~/.pnpm-store
+      - pnpm install
 
   - name: package
-    image: electronuserland/builder:wine
+    image: node:24
+    environment:
+      TMPDIR: /tmp
     commands:
-      - pnpm electron-builder --win --x64 --publish never
+      - git config --global --add safe.directory "$CI_WORKSPACE"
+      - ./node_modules/.bin/electron-builder --win --x64 --publish never
 
   - name: verify
     image: alpine
