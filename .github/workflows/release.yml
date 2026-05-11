@@ -1,4 +1,4 @@
-name: Release
+name: Release macOS
 
 on:
   push:
@@ -12,52 +12,9 @@ permissions:
   actions: write
 
 jobs:
-  build-linux:
-    name: Build Linux
-    runs-on: ubuntu-latest
-    outputs:
-      artifact-id: ${{ steps.upload.outputs.artifact-id }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm electron-builder --linux --x64 --publish never
-      - id: upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-linux
-          path: |
-            release/*.AppImage
-            release/*.deb
-          retention-days: 1
-
-  build-windows:
-    name: Build Windows
-    runs-on: ubuntu-latest
-    outputs:
-      artifact-id: ${{ steps.upload.outputs.artifact-id }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm electron-builder --win --x64 --publish never
-      - id: upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-windows
-          path: release/*.exe
-          retention-days: 1
-
   build-macos:
     name: Build macOS
+    timeout-minutes: 30
     runs-on: macos-latest
     outputs:
       artifact-id: ${{ steps.upload.outputs.artifact-id }}
@@ -80,18 +37,18 @@ jobs:
           retention-days: 1
 
   release:
-    name: Create Release
-    needs: [build-linux, build-windows, build-macos]
+    name: Upload macOS to release
+    needs: build-macos
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/download-artifact@v4
         with:
+          name: build-macos
           path: artifacts
-          merge-multiple: true
 
-      - name: Create release
+      - name: Upload DMG to release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -102,13 +59,12 @@ jobs:
             --prerelease \
             --title "v${VERSION} (${SHORT_SHA})" \
             --notes "Release from main at ${SHORT_SHA}" \
-            artifacts/*
+            2>/dev/null || true
+          gh release upload "$TAG" artifacts/*.dmg --clobber
 
-      - name: Delete artifacts
+      - name: Delete artifact
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api -X DELETE "/repos/${{ github.repository }}/actions/artifacts/${{ needs.build-linux.outputs.artifact-id }}" || true
-          gh api -X DELETE "/repos/${{ github.repository }}/actions/artifacts/${{ needs.build-windows.outputs.artifact-id }}" || true
           gh api -X DELETE "/repos/${{ github.repository }}/actions/artifacts/${{ needs.build-macos.outputs.artifact-id }}" || true
