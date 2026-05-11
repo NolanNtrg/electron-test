@@ -54,4 +54,5 @@ steps:
           release/*.AppImage \
           release/*.deb \
           release/*.exe \
-          --repo NolanNtrg/electron-test
+          --repo NolanNtrg/electron-test \
+          --clobber

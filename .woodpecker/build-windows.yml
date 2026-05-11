@@ -12,7 +12,7 @@ steps:
       - corepack enable
       - corepack prepare pnpm@10.33.2 --activate
       - pnpm config set store-dir ~/.pnpm-store
-      - pnpm install
+      - pnpm install --frozen-lockfile
 
   - name: package
     image: node:24
