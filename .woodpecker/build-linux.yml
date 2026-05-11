@@ -1,0 +1,44 @@
+when:
+  - event: pull_request
+
+steps:
+  - name: install
+    image: electronuserland/builder:latest
+    environment:
+      LEFTHOOK: "0"
+    commands:
+      - corepack enable
+      - pnpm install --frozen-lockfile
+
+  - name: build
+    image: electronuserland/builder:latest
+    environment:
+      LEFTHOOK: "0"
+    commands:
+      - pnpm build
+
+  - name: package
+    image: electronuserland/builder:latest
+    commands:
+      - pnpm electron-builder --linux --x64 --publish never
+
+  - name: verify
+    image: alpine
+    commands:
+      - ls -lh release/
+      - test -n "$(ls release/*.AppImage 2>/dev/null)" || (echo "AppImage manquant" && exit 1)
+      - test -n "$(ls release/*.deb 2>/dev/null)" || (echo ".deb manquant" && exit 1)
+
+  - name: release
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: github_token
+      files:
+        - release/*.AppImage
+        - release/*.deb
+      tag: "pr-${CI_COMMIT_PULL_REQUEST}-${CI_COMMIT_SHA:0:7}"
+      title: "PR #${CI_COMMIT_PULL_REQUEST} build (${CI_COMMIT_SHA:0:7})"
+      note: "Automated pre-release build from PR #${CI_COMMIT_PULL_REQUEST}"
+      prerelease: true
+      overwrite: true
