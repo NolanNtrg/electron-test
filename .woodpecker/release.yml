@@ -37,14 +37,17 @@ steps:
       GITHUB_TOKEN:
         from_secret: github_token
     commands:
-      - apk add --no-cache github-cli
+      - apk add --no-cache github-cli jq
       - |
         set -e
+        git config --global --add safe.directory "$CI_WORKSPACE"
+        cd "$CI_WORKSPACE"
         SHA=$(git rev-parse --short=7 HEAD)
-        VERSION=$(awk -F'"' '/"version"/{print $4; exit}' package.json)
+        VERSION=$(jq -r .version package.json)
         TAG="v${VERSION}-${SHA}"
         gh release create "$TAG" \
           --repo NolanNtrg/electron-test \
+          --prerelease \
           --title "v${VERSION} (${SHA})" \
           --notes "Release built from main — ${SHA}"
         gh release upload "$TAG" \
