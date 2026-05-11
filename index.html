@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Electron Test</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: #1a1a2e;
+        color: #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+      }
+
+      .container {
+        text-align: center;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      p {
+        color: #888;
+        margin-bottom: 2rem;
+        font-size: 1rem;
+      }
+
+      .versions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+      }
+
+      .badge {
+        background: #16213e;
+        border: 1px solid #0f3460;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+      }
+
+      .badge span {
+        color: #667eea;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Electron Test</h1>
+      <p>A simple Electron application</p>
+      <div class="versions">
+        <div class="badge">Electron <span id="electron-version"></span></div>
+        <div class="badge">Node <span id="node-version"></span></div>
+        <div class="badge">Chrome <span id="chrome-version"></span></div>
+      </div>
+    </div>
+    <script>
+      document.getElementById('electron-version').textContent = versions.electron()
+      document.getElementById('node-version').textContent = versions.node()
+      document.getElementById('chrome-version').textContent = versions.chrome()
+    </script>
+  </body>
+</html>
