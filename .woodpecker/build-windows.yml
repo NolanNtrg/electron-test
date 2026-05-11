@@ -15,12 +15,11 @@ steps:
       - pnpm install --frozen-lockfile
 
   - name: package
-    image: node:24
+    image: electronuserland/builder:latest
     environment:
-      TMPDIR: /tmp
+      LEFTHOOK: "0"
     commands:
-      - git config --global --add safe.directory "$CI_WORKSPACE"
-      - ./node_modules/.bin/electron-builder --win --x64 --publish never
+      - pnpm electron-builder --win --x64 --publish never
 
   - name: verify
     image: alpine

@@ -18,18 +18,16 @@ steps:
   - name: package-linux
     image: electronuserland/builder:latest
     environment:
-      TMPDIR: /tmp
+      LEFTHOOK: "0"
     commands:
-      - git config --global --add safe.directory "$CI_WORKSPACE"
-      - ./node_modules/.bin/electron-builder --linux --x64 --publish never
+      - pnpm electron-builder --linux --x64 --publish never
 
   - name: package-windows
-    image: node:24
+    image: electronuserland/builder:latest
     environment:
-      TMPDIR: /tmp
+      LEFTHOOK: "0"
     commands:
-      - git config --global --add safe.directory "$CI_WORKSPACE"
-      - ./node_modules/.bin/electron-builder --win --x64 --publish never
+      - pnpm electron-builder --win --x64 --publish never
 
   - name: release
     image: node:24
