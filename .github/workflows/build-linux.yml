@@ -1,8 +1,6 @@
 name: Build Linux
 
 on:
-  pull_request:
-    branches: [main]
   repository_dispatch:
     types: [release-ready]
 
@@ -37,7 +35,6 @@ jobs:
         run: pnpm electron-builder --linux --x64 --publish never
 
       - name: Upload to release
-        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
